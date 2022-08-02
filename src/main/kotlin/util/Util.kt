@@ -34,11 +34,13 @@ fun filterStickInput(xStick: Float, yStick: Float): Vec2
 fun Surface2D.setDrawColor(color: Color, alpha: Float) =
     setDrawColor(color.red, color.green, color.blue, color.alpha * alpha)
 
-fun PulseEngine.playSoundWithName(name: String)
+fun PulseEngine.playSoundWithName(name: String, pitch: Float = 1f, volume: Float = 1f)
 {
-    asset.getOrNull<Sound>(name)?.let { shotgunSound ->
-        audio.play(audio.createSource(shotgunSound))
-    }
+    val sound = asset.getOrNull<Sound>(name) ?: return
+    val sourceId = audio.createSource(sound)
+    audio.setPitch(sourceId, pitch)
+    audio.setVolume(sourceId, volume)
+    audio.play(sourceId)
 }
 
 inline fun <reified T: Asset> AssetManager.loadAll(directory: String)
@@ -48,13 +50,9 @@ inline fun <reified T: Asset> AssetManager.loadAll(directory: String)
         val assetName = fileName.substringAfterLast("/").substringBeforeLast(".")
         when (T::class)
         {
-            Font::class ->
-                if (fileName.endsWith("ttf")) loadFont(fileName, assetName, arrayOf(80f).toFloatArray())
-            Sound::class ->
-                if (fileName.endsWith("ogg")) loadSound(fileName, assetName)
-            Texture::class ->
-                if (Texture.SUPPORTED_FORMATS.any { fileName.endsWith(it) }) loadTexture(fileName, assetName)
+            Font::class -> if (fileName.endsWith("ttf")) loadFont(fileName, assetName, arrayOf(80f).toFloatArray())
+            Sound::class -> if (fileName.endsWith("ogg")) loadSound(fileName, assetName)
+            Texture::class -> if (fileName.endsWith("png")) loadTexture(fileName, assetName)
         }
     }
 }
-

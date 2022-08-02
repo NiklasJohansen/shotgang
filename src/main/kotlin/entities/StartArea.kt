@@ -5,9 +5,14 @@ import systems.PlayerSpawnSystem
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.input.Key
 import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.primitives.Color
 import systems.GameStateSystem
+import util.FONT_BADABB
+import util.SOUND_DING_0
+import util.SOUND_DING_1
 import util.playSoundWithName
 import kotlin.math.max
 
@@ -16,7 +21,7 @@ class StartArea : SceneEntity()
     var color = Color(0f, 1f, 0f, 0.8f)
     var textureName = ""
     var readyCountdownTime = 3000L
-    var fontName = ""
+    var fontName =  FONT_BADABB
     var fontSize = 200f
     var fontColor = Color(1f, 0.67f, 0f)
 
@@ -27,50 +32,63 @@ class StartArea : SceneEntity()
     override fun onUpdate(engine: PulseEngine)
     {
         val spawnSystem = engine.scene.getSystemOfType<PlayerSpawnSystem>() ?: return
-        var allPlayersReady = (spawnSystem.activePlayers.size > 0)
+        var allPlayersReady = isAllPlayersReady(engine, spawnSystem.activePlayers)
 
-        for (playerId in spawnSystem.activePlayers)
-        {
-            val player = engine.scene.getEntityOfType<Player>(playerId) ?: continue
-            if (player.x < x - width / 2 || player.x > x + width / 2 || player.y < y - height / 2 || player.y > y + height / 2)
-            {
-                allPlayersReady = false
-                break
-            }
-        }
+        // Manual override
+        if (engine.input.isPressed(Key.R))
+            allPlayersReady = true
 
+        // Start count down when all players are ready
         startCountDownTime = if (allPlayersReady) startCountDownTime ?: System.currentTimeMillis() else null
 
-        startCountDownTime?.let()
+        if (startCountDownTime != null)
         {
-            val elapsedTime = System.currentTimeMillis() - it
-            val second = getCountDownSecond(it)
-            if (second != lastCountDownSecond)
-            {
-                val soundName = if (second == 0) "countdown_ding_1" else "countdown_ding_0"
-                engine.playSoundWithName(soundName)
-                lastCountDownSecond = second
-            }
-
+            val elapsedTime = System.currentTimeMillis() - startCountDownTime!!
             if (elapsedTime > readyCountdownTime && !transitionedToNextLevel)
             {
                 GameStateSystem.transitionToNextLevel(engine)
                 transitionedToNextLevel = true
             }
+            playCountDownSound(engine, startCountDownTime!!)
+        }
+    }
+
+    private fun isAllPlayersReady(engine: PulseEngine, activePlayerIds: List<Long>): Boolean
+    {
+        for (playerId in activePlayerIds)
+        {
+            val player = engine.scene.getEntityOfType<Player>(playerId) ?: continue
+            if (player.x < x - width / 2 || player.x > x + width / 2 || player.y < y - height / 2 || player.y > y + height / 2)
+                return false
+        }
+        return activePlayerIds.isNotEmpty()
+    }
+
+    private fun playCountDownSound(engine: PulseEngine, startCountDownTime: Long)
+    {
+        val second = getCountDownSecond(startCountDownTime)
+        if (second != lastCountDownSecond)
+        {
+            val soundName = if (second == 0) SOUND_DING_1 else SOUND_DING_0
+            engine.playSoundWithName(soundName)
+            lastCountDownSecond = second
         }
     }
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
+        // Start area rectangle
         surface.setDrawColor(color)
         surface.drawTexture(engine.asset.getOrNull(textureName) ?: Texture.BLANK, x, y, width, height, xOrigin = 0.5f, yOrigin = 0.5f)
 
-        startCountDownTime?.let()
+        // Count down text
+        val countDownTime = startCountDownTime
+        if (engine.scene.state == SceneState.RUNNING && countDownTime != null)
         {
             val overlaySurface = engine.gfx.getSurface("overlay") ?: return
             overlaySurface.setDrawColor(fontColor)
             overlaySurface.drawText(
-                text = getCountDownSecond(it).toString(),
+                text = getCountDownSecond(countDownTime).toString(),
                 x = engine.window.width.toFloat() / 2f,
                 y = engine.window.height.toFloat() / 2f,
                 font = engine.asset.getOrNull(fontName),

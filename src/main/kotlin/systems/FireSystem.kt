@@ -6,6 +6,7 @@ import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.scene.SceneSystem
+import util.TEMPLATE_NAME
 
 class FireSystem : SceneSystem()
 {
@@ -53,7 +54,7 @@ class FireSystem : SceneSystem()
     private fun isMoreThanOnePlayerAlive(engine: PulseEngine): Boolean
     {
         val players = engine.scene.getAllEntitiesOfType<Player>() ?: return false
-        val playersAlive = players.count { !it.isDead() && it.name != "TEMPLATE" }
+        val playersAlive = players.count { !it.isDead() && it.name != TEMPLATE_NAME }
         return (players.size > 1 && playersAlive > 1) || (players.size == 1 && playersAlive == 1)
     }
 

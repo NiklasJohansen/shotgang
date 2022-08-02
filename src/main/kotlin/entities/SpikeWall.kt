@@ -3,9 +3,12 @@ package entities
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
+import no.njoh.pulseengine.core.shared.annotations.Property
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.lighting.LightOccluder
 import no.njoh.pulseengine.modules.physics.entities.Box
+import util.NO_COLLISION_LAYER
+import util.WALL_LAYER
 
 class SpikeWall : Box(), LightOccluder
 {
@@ -15,6 +18,8 @@ class SpikeWall : Box(), LightOccluder
     var textureYScale = 1f
     var hasSpikes = true
 
+    @Property("Physics", 1) override var layerMask = WALL_LAYER
+    @Property("Physics", 2) override var collisionMask = NO_COLLISION_LAYER
     override var castShadows = true
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)

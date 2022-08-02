@@ -9,6 +9,7 @@ import no.njoh.pulseengine.core.input.Button
 import no.njoh.pulseengine.core.scene.SceneSystem
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
+import util.TEMPLATE_NAME
 import kotlin.math.sqrt
 
 class PlayerSpawnSystem : SceneSystem()
@@ -20,7 +21,7 @@ class PlayerSpawnSystem : SceneSystem()
     override fun onCreate(engine: PulseEngine)
     {
         // Players transferred from previous scene
-        playersToTransition.forEachFast()
+        playersToTransfer.forEachFast()
         {
             val player = it.copy()
             val spawnCoordinate = findSpawnCoordinate(engine)
@@ -32,7 +33,7 @@ class PlayerSpawnSystem : SceneSystem()
             engine.scene.addEntity(player)
             activePlayers.add(player.id)
         }
-        playersToTransition.clear()
+        playersToTransfer.clear()
     }
 
     override fun onUpdate(engine: PulseEngine)
@@ -113,19 +114,19 @@ class PlayerSpawnSystem : SceneSystem()
     companion object
     {
         @JsonIgnore
-        private val playersToTransition = mutableListOf<Player>()
+        private val playersToTransfer = mutableListOf<Player>()
         private val playerSpec = listOf(
-            PlayerSpec("Arnulf", Color(232, 97, 97)),
-            PlayerSpec("Bjartmar", Color(97, 133, 232)),
-            PlayerSpec("Oluf", Color(232, 97, 221)),
-            PlayerSpec("Ronny", Color(209, 143, 63)),
+            PlayerSpec("Knut-Tore",  Color(232, 97, 97)),
+            PlayerSpec("Finn-Olav",  Color(97, 133, 232)),
+            PlayerSpec("Kris-Ove",   Color(232, 97, 221)),
+            PlayerSpec("Bent-Arne",  Color(209, 143, 63)),
             PlayerSpec("Stig-Jonny", Color(119, 209, 63)),
             PlayerSpec("Nils-Roger", Color(99, 67, 161))
         )
 
-        fun transitionPlayer(player: Player)
+        fun transferPlayer(player: Player)
         {
-            if (player.name != "TEMPLATE") playersToTransition.add(player)
+            if (player.name != TEMPLATE_NAME) playersToTransfer.add(player)
         }
     }
 }

@@ -1,9 +1,8 @@
 package entities
 
-import util.PIf
 import com.fasterxml.jackson.annotation.JsonIgnore
-import util.filterStickInput
 import no.njoh.pulseengine.core.PulseEngine
+import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.asset.types.SpriteSheet
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
@@ -23,29 +22,29 @@ import no.njoh.pulseengine.modules.physics.bodies.CircleBody
 import no.njoh.pulseengine.modules.physics.bodies.PhysicsBody
 import no.njoh.pulseengine.modules.physics.shapes.CircleShape
 import systems.GameStateSystem
-import util.playSoundWithName
-import util.setDrawColor
+import util.*
 import kotlin.math.*
+import kotlin.random.Random
 
 class Player : SceneEntity(), CircleBody, LightSource
 {
     var name = "unknown"
     var gamepadId = 0
-    var life = 100f
-    override var color = Color(1f, 1f, 1f)
+    var life = FULL_LIFE
 
-    // Animation props
-    @Property("Animation", 0) var textureName = ""
-    @Property("Animation", 1) var textureScale = 1f
-    @Property("Animation", 2) var frameStartIndex = 0
-    @Property("Animation", 3) var frameEndIndex = 0
-    @Property("Animation", 4) var frameRate = 2
+    // Graphics props
+    @Property("Graphics", 0) var textureName = TEXTURE_WALK
+    @Property("Graphics", 1) var textureScale = 1f
+    @Property("Graphics", 2) var frameStartIndex = 0
+    @Property("Graphics", 3) var frameEndIndex = 0
+    @Property("Graphics", 4) var frameRate = 2
+    @Property("Graphics", 5) override var color = Color(1f, 1f, 1f)
 
     // Physics props
     @JsonIgnore override val shape = CircleShape()
     @Property("Physics", 0) override var bodyType = BodyType.DYNAMIC
-    @Property("Physics", 1) override var layerMask = 1
-    @Property("Physics", 2) override var collisionMask = 1
+    @Property("Physics", 1) override var layerMask = PLAYER_LAYER
+    @Property("Physics", 2) override var collisionMask = PLAYER_LAYER or WALL_LAYER
     @Property("Physics", 3) override var restitution = 0f
     @Property("Physics", 4) override var density = 1f
     @Property("Physics", 5) override var friction = 0.4f
@@ -76,11 +75,13 @@ class Player : SceneEntity(), CircleBody, LightSource
 
     // Players state
     @JsonIgnore private var accRot = 0f
-    @JsonIgnore private var accX = 0f
-    @JsonIgnore private var accY = 0f
+    @JsonIgnore private var xAcc = 0f
+    @JsonIgnore private var yAcc = 0f
     @JsonIgnore private var frame = 0f
     @JsonIgnore private var shootTime = 0L
     @JsonIgnore private var shotFired = false
+    @JsonIgnore private var lightIntensity = intensity
+    @JsonIgnore private var lastStepTime = 0L
 
     // Scoring
     @JsonIgnore var kills = 0
@@ -93,14 +94,15 @@ class Player : SceneEntity(), CircleBody, LightSource
 
     override fun onUpdate(engine: PulseEngine)
     {
-        accX = 0f
-        accY = 0f
+        xAcc = 0f
+        yAcc = 0f
         accRot = 0f
 
         val gameStateSystem = engine.scene.getSystemOfType<GameStateSystem>()
         val hasGameStarted = gameStateSystem?.gameStarted != false
+        val isGameOver = gameStateSystem?.gameOver == true
 
-        if (!isDead() && gameStateSystem?.gameOver != true)
+        if (!isDead() && !isGameOver)
         {
             val gamepad = engine.input.gamepads.find { it.id == gamepadId } ?: return
             val (xLeft, yLeft) = filterStickInput(gamepad.getAxis(Axis.LEFT_X), gamepad.getAxis(Axis.LEFT_Y))
@@ -118,12 +120,16 @@ class Player : SceneEntity(), CircleBody, LightSource
             if (hasGameStarted)
             {
                 // Movement
-                accX += speed * xLeft
-                accY += speed * -yLeft
+                xAcc += speed * xLeft
+                yAcc += speed * -yLeft
 
+                handleFootsteps(engine)
                 handleShooting(engine, rightTrigger)
             }
         }
+
+        // Disable player light on death
+        intensity = if (isDead()) 0f else lightIntensity
     }
 
     private fun handleShooting(engine: PulseEngine, rightTrigger: Float)
@@ -137,6 +143,20 @@ class Player : SceneEntity(), CircleBody, LightSource
             }
         }
         else shotFired = false
+    }
+
+    private fun handleFootsteps(engine: PulseEngine)
+    {
+        val millisBetweenSteps = 250 + Random.nextInt(3)
+        if (sqrt(xAcc * xAcc + yAcc * yAcc) > 1f && System.currentTimeMillis() - lastStepTime > millisBetweenSteps)
+        {
+            engine.playSoundWithName(
+                name = listOf(SOUND_STEP_0, SOUND_STEP_1, SOUND_STEP_2).random(),
+                pitch = 2f + 0.1f * nextRandomGaussian(),
+                volume = 0.3f + 0.1f * nextRandomGaussian()
+            )
+            lastStepTime = System.currentTimeMillis()
+        }
     }
 
     fun shoot(engine: PulseEngine)
@@ -249,12 +269,12 @@ class Player : SceneEntity(), CircleBody, LightSource
     {
         // Physics
         wakeUp()
-        shape.xAcc += accX
-        shape.yAcc += accY
+        shape.xAcc += xAcc
+        shape.yAcc += yAcc
         shape.rotLast = shape.rot // Kill angular momentum
 
         // Animation
-        if (abs(accX) > 0f || abs(accY) > 0f)
+        if (abs(xAcc) > 0f || abs(yAcc) > 0f)
         {
             frame += engine.data.fixedDeltaTime * frameRate
             if (frame >= frameEndIndex)
@@ -293,15 +313,17 @@ class Player : SceneEntity(), CircleBody, LightSource
         surface.drawTexture(Texture.BLANK, x - barWidth * 0.5f, yBar, barWidth * a, 4f)
 
         // Name
+        val font = engine.asset.getOrNull<Font>(FONT_BADABB)
         surface.setDrawColor(1f, 1f, 1f )
-        surface.drawText(name, x, y - height * 1.01f, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 24f)
+        surface.drawText(name, x, y - height * 0.85f, font, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 22f)
     }
 
     override fun onCollision(engine: PulseEngine, otherBody: PhysicsBody, result: ContactResult)
     {
         when (otherBody)
         {
-            is Bullet -> {
+            is Bullet ->
+            {
                 // Should not be hit by own bullets
                 if (otherBody.spawnerId == this.id)
                     return
@@ -322,7 +344,8 @@ class Player : SceneEntity(), CircleBody, LightSource
                 }
             }
 
-            is SpikeWall -> {
+            is SpikeWall ->
+            {
                 if (otherBody.hasSpikes) setDead(engine)
             }
         }
@@ -333,17 +356,17 @@ class Player : SceneEntity(), CircleBody, LightSource
     {
         life = 0f
         bodyType = BodyType.STATIC
-        layerMask = 128
+        layerMask = NO_COLLISION_LAYER
         shape.xLast = x
         shape.yLast = y
-        engine.playSoundWithName("death")
+        engine.playSoundWithName(SOUND_DEATH)
     }
 
     fun setAlive()
     {
-        life = 100f
+        life = FULL_LIFE
+        layerMask = PLAYER_LAYER
         bodyType = BodyType.DYNAMIC
-        layerMask = 1
         shape.xLast = x
         shape.yLast = y
     }
@@ -404,7 +427,6 @@ class Player : SceneEntity(), CircleBody, LightSource
 
     companion object
     {
-        private val random = java.util.Random()
-        fun nextRandomFloat() = random.nextGaussian().toFloat()
+        private const val FULL_LIFE = 100f
     }
 }

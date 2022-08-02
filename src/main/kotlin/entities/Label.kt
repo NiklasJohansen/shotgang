@@ -5,11 +5,12 @@ import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
+import util.FONT_BADABB
 
 class Label : SceneEntity()
 {
     var text = "TEXT"
-    var font = ""
+    var font = FONT_BADABB
     var size = 20f
     var color = Color(1f, 1f, 1f)
 
