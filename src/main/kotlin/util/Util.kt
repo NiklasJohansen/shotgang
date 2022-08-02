@@ -13,6 +13,9 @@ import kotlin.math.*
 
 val PIf = PI.toFloat()
 
+private val random = java.util.Random()
+fun nextRandomGaussian() = random.nextGaussian().toFloat()
+
 fun filterStickInput(xStick: Float, yStick: Float): Vec2
 {
     val deadZone = 0.2f

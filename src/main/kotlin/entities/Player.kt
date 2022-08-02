@@ -141,33 +141,36 @@ class Player : SceneEntity(), CircleBody, LightSource
 
     fun shoot(engine: PulseEngine)
     {
-        if (isDead()) return
-
-        val time = System.currentTimeMillis()
-        if (time - shootTime < 1000f / max(0.0001f, fireRate))
-            return // To close to last shot
+        if (isDead() || System.currentTimeMillis() - shootTime < 1000f / max(0.0001f, fireRate))
+            return // Dead or to close to last shot
 
         // Apply recoil
         val recoilAngle = -shape.rot + PIf
-        val recoilForce = shape.mass * recoil
-        shape.xAcc += recoilForce * cos(recoilAngle)
-        shape.yAcc += recoilForce * sin(recoilAngle)
+        shape.xAcc += recoil * cos(recoilAngle)
+        shape.yAcc += recoil * sin(recoilAngle)
 
         // Sound
-        engine.playSoundWithName("shotgun")
+        engine.playSoundWithName(SOUND_SHOTGUN, pitch = 1f + 0.05f * nextRandomGaussian(),)
+        engine.playSoundWithName(
+            name = listOf(SOUND_SHELL_DROP_0, SOUND_SHELL_DROP_1, SOUND_SHELL_DROP_2).random(),
+            pitch = 2f + 0.2f * nextRandomGaussian(),
+            volume = 0.5f
+        )
 
         // Spawn bullets
+        var xBullet = 0f
+        var yBullet = 0f
         for (i in 0 until bulletCount)
         {
             // Calculate bullet spawn position
             val bulletAngle = -shape.rot
-            val offsetSpawnAngle = bulletSpawnOffsetAngle.toRadians() + 0.02f * nextRandomFloat()
-            val xBullet = x + cos(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
-            val yBullet = y + sin(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
+            val offsetSpawnAngle = bulletSpawnOffsetAngle.toRadians() + 0.02f * nextRandomGaussian()
+            xBullet = x + cos(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
+            yBullet = y + sin(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
 
             // Calculate cone and spread angles
             val bulletConeAngle = bulletConeAngle.toRadians()
-            val spreadAngle = bulletSpreadAngle.toRadians() * nextRandomFloat()
+            val spreadAngle = bulletSpreadAngle.toRadians() * nextRandomGaussian()
             val stepAngle = bulletConeAngle / bulletCount
             val coneAngle = 0.5f * (bulletConeAngle - stepAngle) - stepAngle * i
 
@@ -176,28 +179,70 @@ class Player : SceneEntity(), CircleBody, LightSource
             bullet.init(xBullet, yBullet, bulletAngle + coneAngle + spreadAngle, bulletVelocity)
             bullet.shape.mass = bulletMass
             bullet.spawnerId = this.id
-            bullet.layerMask = 1
-            bullet.collisionMask = 1
             engine.scene.addEntity(bullet)
-
-            // Muzzle flash
-            if (i == 0)
-            {
-                val flash = Flash()
-                flash.color = Color(1f, 0.85f, 0.3f)
-                flash.lifeTimeMillis = 80f
-                flash.coneAngle = 0f
-                flash.intensity = 10f
-                flash.radius = 600f
-                flash.rotation = rotation
-                flash.x = xBullet
-                flash.y = yBullet
-                flash.onStart(engine)
-                engine.scene.addEntity(flash)
-            }
         }
 
-        shootTime = time
+        // Muzzle flash
+        val flash = Flash()
+        flash.color = Color(1f, 0.85f, 0.3f)
+        flash.lifeTimeMillis = 100f
+        flash.coneAngle = 0f
+        flash.intensity = 8f
+        flash.radius = 400f + 300f * Random.nextFloat()
+        flash.rotation = rotation
+        flash.x = xBullet
+        flash.y = yBullet
+        flash.onStart(engine)
+        engine.scene.addEntity(flash)
+
+        // Sparks
+        for (i in 0 until 15)
+        {
+            val spark = Spark()
+            val velocity = 10f + Random.nextFloat() * 60
+            val angle = -rotation + 10 * nextRandomGaussian()
+            spark.turbulence = 5f
+            spark.timeToLiveMillis = 50 + Random.nextLong(300)
+            spark.init(xBullet, yBullet, angle.toRadians(), velocity)
+            spark.onStart(engine)
+            engine.scene.addEntity(spark)
+        }
+
+        // Smoke
+        for (i in 0 until 6)
+        {
+            val smoke = Smoke()
+            val velocity = 5f + 20f * Random.nextFloat()
+            smoke.x = xBullet
+            smoke.y = yBullet
+            smoke.rotation = Random.nextFloat() * 360f
+            smoke.startSize = 5f + 10f * Random.nextFloat()
+            smoke.endSize = 80f + 80f * Random.nextFloat()
+            smoke.lifeTimeMillis = 500 + (800 * Random.nextFloat()).toLong()
+            smoke.drag = 0.15f + 0.05f * Random.nextFloat()
+            smoke.init(engine)
+            smoke.shape.xLast = xBullet - velocity * cos(-rotation.toRadians())
+            smoke.shape.yLast = yBullet - velocity * sin(-rotation.toRadians())
+            smoke.shape.rotLast = smoke.shape.rot - 0.03f * Random.nextFloat()
+            engine.scene.addEntity(smoke)
+        }
+
+        // Eject empty shell
+        val shell = Shell()
+        shell.color = Color(0.7f, 0.7f, 0.7f)
+        shell.x = xBullet
+        shell.y = yBullet
+        shell.z = 1f
+        shell.width = 8f
+        shell.height = 16f
+        shell.rotation = rotation
+        shell.init(engine)
+        shell.shape.xLast = xBullet - 35f * cos(-rotation.toRadians() + PIf / 2f)
+        shell.shape.yLast = yBullet - 35f * sin(-rotation.toRadians() + PIf / 2f)
+        shell.shape.applyAngularAcceleration(nextRandomGaussian() * 0.5f)
+        engine.scene.addEntity(shell)
+
+        shootTime = System.currentTimeMillis()
     }
 
     override fun onFixedUpdate(engine: PulseEngine)
