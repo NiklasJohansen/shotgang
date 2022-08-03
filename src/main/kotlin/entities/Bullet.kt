@@ -114,6 +114,7 @@ class Bullet : SceneEntity(), PointBody
             flash.onStart(engine)
             engine.scene.addEntity(flash)
 
+            // Sparks
             for (i in 0 until 2)
             {
                 val spark = Spark()
@@ -126,6 +127,18 @@ class Bullet : SceneEntity(), PointBody
                 spark.onStart(engine)
                 engine.scene.addEntity(spark)
             }
+
+            // Hit decals
+            val decal = Decal()
+            decal.color = Color(0.9f, 0.9f, 0.9f, 0.9f)
+            decal.textureName = TEXTURE_BURN_0
+            decal.x = x
+            decal.y = y
+            decal.width = 512f / 2f
+            decal.height = 345f / 2f
+            decal.rotation = Random.nextFloat() * 360f
+            decal.onStart(engine)
+            engine.scene.addEntity(decal)
         }
     }
 
@@ -133,10 +146,8 @@ class Bullet : SceneEntity(), PointBody
     {
         val t = 1f - (getLifeTimeMillis() / maxLifeTimeMillis).coerceIn(0f, 1f)
         val alpha = if (t > 0.3f) 1f else t / 0.3f
-        val particleSurface = engine.gfx.getSurface(BULLET_SURFACE) ?: surface
-
-        particleSurface.setDrawColor(color, alpha)
-        particleSurface.drawLine(xLast, yLast, x, y)
+        surface.setDrawColor(color, alpha)
+        surface.drawLine(xLast, yLast, x, y)
     }
 
     fun getVelocity(): Float = sqrt(shape.xVel * shape.xVel + shape.yVel * shape.yVel)

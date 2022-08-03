@@ -346,7 +346,22 @@ class Player : SceneEntity(), CircleBody, LightSource
 
             is SpikeWall ->
             {
-                if (otherBody.hasSpikes) setDead(engine)
+                if (otherBody.hasSpikes)
+                {
+                    setDead(engine)
+
+                    // Blood decal
+                    val blood = Decal()
+                    blood.color = Color(0.9f, 0.9f, 0.9f, 0.9f)
+                    blood.textureName = TEXTURE_BLOOD_0
+                    blood.x = x
+                    blood.y = y
+                    blood.width = 300f
+                    blood.height = 300f
+                    blood.rotation = Random.nextFloat() * 360f
+                    blood.onStart(engine)
+                    engine.scene.addEntity(blood)
+                }
             }
         }
     }

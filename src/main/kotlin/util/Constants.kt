@@ -14,6 +14,8 @@ const val TEXTURE_WALK = "top_down_walk"
 const val TEXTURE_SHOTGUN_SHELL = "shotgun_shell"
 const val TEXTURE_SMOKE_PUFF = "smoke_puff"
 const val TEXTURE_SPARK_0 = "spark_0"
+const val TEXTURE_BLOOD_0 = "blood_splatter_0"
+const val TEXTURE_BURN_0 = "burn_decal"
 const val SOUND_SHOTGUN = "shotgun"
 const val SOUND_DEATH = "death"
 const val SOUND_DING_0 = "countdown_ding_0"
@@ -49,3 +51,5 @@ val LEVELS = listOf(
 
 // Surface names
 const val BULLET_SURFACE = "bullet_surface"
+const val DECAL_MASK_SURFACE = "decal_mask_surface"
+const val DECAL_SURFACE = "decals"
