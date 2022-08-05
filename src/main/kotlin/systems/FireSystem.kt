@@ -6,7 +6,8 @@ import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.scene.SceneSystem
-import util.TEMPLATE_NAME
+import shared.OVERLAY_SURFACE
+import shared.TEMPLATE_NAME
 
 class FireSystem : SceneSystem()
 {
@@ -38,7 +39,7 @@ class FireSystem : SceneSystem()
         if (!isMoreThanOnePlayerAlive(engine) || !isGameStarted(engine))
             return
 
-        val surface = engine.gfx.getSurface("overlay") ?: return
+        val surface = engine.gfx.getSurface(OVERLAY_SURFACE) ?: return
 
         // Timer bar
         val p = getProgress()

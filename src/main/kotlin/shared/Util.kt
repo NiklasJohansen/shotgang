@@ -1,19 +1,17 @@
-package util
+package shared
 
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.AssetManager
-import no.njoh.pulseengine.core.asset.types.Asset
-import no.njoh.pulseengine.core.asset.types.Font
-import no.njoh.pulseengine.core.asset.types.Sound
-import no.njoh.pulseengine.core.asset.types.Texture
+import no.njoh.pulseengine.core.asset.types.*
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.loadFileNames
 import kotlin.math.*
 
 val PIf = PI.toFloat()
+val random = java.util.Random()
+val spriteSheetDimensionRegex = "_([0-9]{1,3})x([0-9]{1,3})\\.".toRegex() // Matches _1x2.
 
-private val random = java.util.Random()
 fun nextRandomGaussian() = random.nextGaussian().toFloat()
 
 fun filterStickInput(xStick: Float, yStick: Float): Vec2
@@ -52,7 +50,18 @@ inline fun <reified T: Asset> AssetManager.loadAll(directory: String)
         {
             Font::class -> if (fileName.endsWith("ttf")) loadFont(fileName, assetName, arrayOf(80f).toFloatArray())
             Sound::class -> if (fileName.endsWith("ogg")) loadSound(fileName, assetName)
-            Texture::class -> if (fileName.endsWith("png")) loadTexture(fileName, assetName)
+            Texture::class -> if (!fileName.endsWith("png")) continue else
+            {
+                val dimensions = spriteSheetDimensionRegex.find(fileName) // example match: _8x2.
+                if (dimensions == null)
+                    loadTexture(fileName, assetName)
+                else loadSpriteSheet(
+                    fileName = fileName,
+                    assetName = assetName.substringBeforeLast("_"),
+                    horizontalCells = dimensions.groupValues[1].toInt(),
+                    verticalCells = dimensions.groupValues[2].toInt()
+                )
+            }
         }
     }
 }

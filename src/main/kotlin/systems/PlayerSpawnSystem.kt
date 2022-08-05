@@ -2,14 +2,15 @@ package systems
 
 import entities.Player
 import entities.SpawnPoint
-import util.Vec2
+import shared.Vec2
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.input.Button
+import no.njoh.pulseengine.core.scene.SceneState.RUNNING
 import no.njoh.pulseengine.core.scene.SceneSystem
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.forEachFast
-import util.TEMPLATE_NAME
+import shared.TEMPLATE_NAME
 import kotlin.math.sqrt
 
 class PlayerSpawnSystem : SceneSystem()
@@ -38,6 +39,9 @@ class PlayerSpawnSystem : SceneSystem()
 
     override fun onUpdate(engine: PulseEngine)
     {
+        if (engine.scene.state != RUNNING)
+            return
+
         // Add players when START is pressed
         for (gamepad in engine.input.gamepads)
         {

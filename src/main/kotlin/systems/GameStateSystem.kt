@@ -5,10 +5,10 @@ import entities.Player
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.asset.types.Texture.Companion.BLANK
-import no.njoh.pulseengine.core.scene.SceneState
+import no.njoh.pulseengine.core.scene.SceneState.RUNNING
 import no.njoh.pulseengine.core.scene.SceneSystem
 import no.njoh.pulseengine.core.shared.primitives.Color
-import util.*
+import shared.*
 import kotlin.math.max
 
 class GameStateSystem : SceneSystem()
@@ -39,7 +39,7 @@ class GameStateSystem : SceneSystem()
 
     override fun onUpdate(engine: PulseEngine)
     {
-        if (engine.scene.state != SceneState.RUNNING)
+        if (engine.scene.state != RUNNING)
             return
 
         if (!gameStarted)
@@ -122,7 +122,10 @@ class GameStateSystem : SceneSystem()
 
     override fun onRender(engine: PulseEngine)
     {
-        val surface = engine.gfx.getSurface("overlay") ?: return
+        if (engine.scene.state != RUNNING)
+            return
+
+        val surface = engine.gfx.getSurface(OVERLAY_SURFACE) ?: return
         val elapsedStartTime = System.currentTimeMillis() - gameStartedTime
 
         // Count down text

@@ -7,9 +7,7 @@ import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.widgets.cli.CommandLine
 import no.njoh.pulseengine.widgets.editor.SceneEditor
 import no.njoh.pulseengine.widgets.profiler.Profiler
-import util.LOBBY_LEVEL
-import util.TEXTURE_WALK
-import util.loadAll
+import shared.*
 
 fun main() = PulseEngine.run(Shotgang::class)
 
@@ -24,7 +22,6 @@ class Shotgang : PulseEngineGame()
         engine.asset.loadAll<Texture>("textures")
         engine.asset.loadAll<Font>("fonts")
         engine.asset.loadAll<Sound>("sound")
-        engine.asset.loadSpriteSheet("textures/top_down_spritesheet.png", TEXTURE_WALK,5, 1)
 
         // Load and start scene
         engine.scene.loadAndSetActive(LOBBY_LEVEL, fromClassPath = true)

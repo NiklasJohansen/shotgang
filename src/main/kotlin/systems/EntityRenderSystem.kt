@@ -13,9 +13,9 @@ import no.njoh.pulseengine.core.graphics.postprocessing.SinglePassEffect
 import no.njoh.pulseengine.core.graphics.postprocessing.effects.BlurEffect
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.systems.EntityRendererImpl
-import util.BULLET_SURFACE
-import util.DECAL_SURFACE
-import util.DECAL_MASK_SURFACE
+import shared.BULLET_SURFACE
+import shared.DECAL_SURFACE
+import shared.DECAL_MASK_SURFACE
 
 class EntityRenderSystem : EntityRendererImpl()
 {
@@ -50,7 +50,7 @@ class EntityRenderSystem : EntityRendererImpl()
         engine.gfx.mainSurface.addPostProcessingEffect(overlayEffect)
 
         // Add render passes
-        addRenderPass(RenderPass(surfaceName = decalMaskSurface.name, targetType = SpikeWall::class))
+        addRenderPass(RenderPass(surfaceName = decalMaskSurface.name, targetType = DecalMask::class))
         addRenderPass(RenderPass(surfaceName = decalSurface.name, targetType = Decal::class))
         addRenderPass(RenderPass(surfaceName = bulletSurface.name, targetType = Bullet::class))
         addRenderPass(RenderPass(
@@ -100,5 +100,10 @@ class EntityRenderSystem : EntityRendererImpl()
             return fbo.getTexture() ?: texture
         }
     }
+
+    /**
+     * Marked [SceneEntity] classes will be rendered to the decal mask surface
+     */
+    interface DecalMask
 }
 
