@@ -349,20 +349,85 @@ class Player : SceneEntity(), CircleBody, LightSource
                 if (otherBody.hasSpikes)
                 {
                     setDead(engine)
-
-                    // Blood decal
-                    val blood = Decal()
-                    blood.color = Color(0.9f, 0.9f, 0.9f, 0.9f)
-                    blood.textureName = TEXTURE_BLOOD_0
-                    blood.x = x
-                    blood.y = y
-                    blood.width = 300f
-                    blood.height = 300f
-                    blood.rotation = Random.nextFloat() * 360f
-                    blood.onStart(engine)
-                    engine.scene.addEntity(blood)
+                    VfxFactory.spawnSpikeWallBloodEffect(engine, x, y)
                 }
             }
+        }
+    }
+
+    private fun handleShooting(engine: PulseEngine, rightTrigger: Float)
+    {
+        if (shootingEnabled && rightTrigger > 0.5)
+        {
+            if (!shotFired || fullAuto)
+            {
+                shoot(engine)
+                shotFired = true
+            }
+        }
+        else shotFired = false
+    }
+
+    fun shoot(engine: PulseEngine)
+    {
+        if (isDead() || System.currentTimeMillis() - shootTime < 1000f / max(0.0001f, fireRate))
+            return // Dead or too close to last shot
+
+        // Apply recoil
+        val recoilAngle = -shape.rot + PIf
+        shape.xAcc += recoil * cos(recoilAngle)
+        shape.yAcc += recoil * sin(recoilAngle)
+
+        // Sound
+        engine.playSoundWithName(SOUND_SHOTGUN, pitch = 1f + 0.05f * nextRandomGaussian(),)
+        engine.playSoundWithName(
+            name = listOf(SOUND_SHELL_DROP_0, SOUND_SHELL_DROP_1, SOUND_SHELL_DROP_2).random(),
+            pitch = 2f + 0.2f * nextRandomGaussian(),
+            volume = 0.5f
+        )
+
+        // Spawn bullets
+        var xBullet = 0f
+        var yBullet = 0f
+        for (i in 0 until bulletCount)
+        {
+            // Calculate bullet spawn position
+            val bulletAngle = -shape.rot
+            val offsetSpawnAngle = bulletSpawnOffsetAngle.toRadians() + 0.02f * nextRandomGaussian()
+            xBullet = x + cos(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
+            yBullet = y + sin(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
+
+            // Calculate cone and spread angles
+            val bulletConeAngle = bulletConeAngle.toRadians()
+            val spreadAngle = bulletSpreadAngle.toRadians() * nextRandomGaussian()
+            val stepAngle = bulletConeAngle / bulletCount
+            val coneAngle = 0.5f * (bulletConeAngle - stepAngle) - stepAngle * i
+
+            // Spawn bullet
+            val bullet = Bullet()
+            bullet.init(xBullet, yBullet, bulletAngle + coneAngle + spreadAngle, bulletVelocity)
+            bullet.shape.mass = bulletMass
+            bullet.spawnerId = this.id
+            engine.scene.addEntity(bullet)
+        }
+
+        // VFX
+        VfxFactory.spawnShotgunEffects(engine, xBullet, yBullet, rotation)
+
+        shootTime = System.currentTimeMillis()
+    }
+
+    private fun handleFootsteps(engine: PulseEngine)
+    {
+        val millisBetweenSteps = 250 + Random.nextInt(3)
+        if (sqrt(xAcc * xAcc + yAcc * yAcc) > 1f && System.currentTimeMillis() - lastStepTime > millisBetweenSteps)
+        {
+            engine.playSoundWithName(
+                name = listOf(SOUND_STEP_0, SOUND_STEP_1, SOUND_STEP_2).random(),
+                pitch = 2f + 0.1f * nextRandomGaussian(),
+                volume = 0.3f + 0.1f * nextRandomGaussian()
+            )
+            lastStepTime = System.currentTimeMillis()
         }
     }
 

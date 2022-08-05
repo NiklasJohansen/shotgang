@@ -6,17 +6,15 @@ import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.annotations.Property
 import no.njoh.pulseengine.core.shared.primitives.Color
-import no.njoh.pulseengine.core.shared.utils.MathUtil.atan2
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.ContactResult
 import no.njoh.pulseengine.modules.physics.bodies.PhysicsBody
 import no.njoh.pulseengine.modules.physics.bodies.PointBody
 import no.njoh.pulseengine.modules.physics.shapes.PointShape
-import util.*
+import shared.*
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-import kotlin.random.Random
 
 class Bullet : SceneEntity(), PointBody
 {
@@ -68,78 +66,10 @@ class Bullet : SceneEntity(), PointBody
     override fun onCollision(engine: PulseEngine, otherBody: PhysicsBody, result: ContactResult)
     {
         if (otherBody is Player && otherBody.id != spawnerId)
-        {
-            // Blood puff
-            val blood = Smoke()
-            blood.color = Color(1f, 0.4f + 0.3f * Random.nextFloat(), 0.4f + 0.3f * Random.nextFloat())
-            blood.x = result.x
-            blood.y = result.y
-            blood.rotation = Random.nextFloat() * 360f
-            blood.startSize = 10f + 15f * Random.nextFloat()
-            blood.endSize = 40f + 40f * Random.nextFloat()
-            blood.lifeTimeMillis = 500 + (800 * Random.nextFloat()).toLong()
-            blood.init(engine)
-            blood.shape.xLast = result.x - 3 * result.xNormal
-            blood.shape.yLast = result.y - 3 * result.yNormal
-            blood.shape.applyAngularAcceleration(0.03f * Random.nextFloat())
-            engine.scene.addEntity(blood)
-        }
+            VfxFactory.spawnBloodSmokePuffEffect(engine, result.x, result.y, result.xNormal, result.yNormal)
 
         if (otherBody is SpikeWall)
-        {
-            // Smoke
-            val smoke = Smoke()
-            val velocity = 5f + 15f * Random.nextFloat()
-            smoke.x = result.x
-            smoke.y = result.y
-            smoke.rotation = Random.nextFloat() * 360f
-            smoke.startSize = 2f + 5f * Random.nextFloat()
-            smoke.endSize = 30f + 20f * Random.nextFloat()
-            smoke.lifeTimeMillis = 500 + (800 * Random.nextFloat()).toLong()
-            smoke.init(engine)
-            smoke.shape.applyAngularAcceleration(0.03f * Random.nextFloat())
-            smoke.shape.xLast = result.x - velocity * result.xNormal
-            smoke.shape.yLast = result.y - velocity * result.yNormal
-            engine.scene.addEntity(smoke)
-
-            // Flash
-            val flash = Flash()
-            flash.color = Color(1f, 0.7f, 0.3f)
-            flash.lifeTimeMillis = 100f
-            flash.coneAngle = 360f
-            flash.intensity = 1f
-            flash.radius = 300f
-            flash.x = result.x
-            flash.y = result.y
-            flash.onStart(engine)
-            engine.scene.addEntity(flash)
-
-            // Sparks
-            for (i in 0 until 2)
-            {
-                val spark = Spark()
-                val sparkVelocity = 30f + Random.nextFloat() * 10f
-                val sparkAngle = atan2(result.yNormal, result.xNormal) + 0.5f * PIf * nextRandomGaussian()
-                spark.turbulence = 10f
-                spark.drag = 0.3f
-                spark.timeToLiveMillis = 100 + Random.nextLong(100)
-                spark.init(result.x, result.y, sparkAngle, sparkVelocity)
-                spark.onStart(engine)
-                engine.scene.addEntity(spark)
-            }
-
-            // Hit decals
-            val decal = Decal()
-            decal.color = Color(0.9f, 0.9f, 0.9f, 0.9f)
-            decal.textureName = TEXTURE_BURN_0
-            decal.x = x
-            decal.y = y
-            decal.width = 512f / 2f
-            decal.height = 345f / 2f
-            decal.rotation = Random.nextFloat() * 360f
-            decal.onStart(engine)
-            engine.scene.addEntity(decal)
-        }
+            VfxFactory.spawnBulletWallHitEffects(engine, result.x, result.y, result.xNormal, result.yNormal)
     }
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)

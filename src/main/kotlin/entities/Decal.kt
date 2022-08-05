@@ -11,6 +11,8 @@ class Decal : SceneEntity()
     var textureName = ""
     var color = Color(1f, 1f, 1f)
 
+    init { setNot(DISCOVERABLE) }
+
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
         surface.setDrawColor(color)

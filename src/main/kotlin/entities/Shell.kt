@@ -12,11 +12,7 @@ import no.njoh.pulseengine.core.shared.utils.Extensions.interpolateFrom
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.bodies.CircleBody
 import no.njoh.pulseengine.modules.physics.shapes.CircleShape
-import util.SHELL_LAYER
-import util.TEXTURE_SHOTGUN_SHELL
-import util.WALL_LAYER
-import kotlin.math.sqrt
-import kotlin.random.Random
+import shared.*
 
 class Shell : SceneEntity(), CircleBody
 {

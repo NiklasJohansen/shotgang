@@ -10,10 +10,10 @@ import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.bodies.CircleBody
 import no.njoh.pulseengine.modules.physics.shapes.CircleShape
-import util.NO_COLLISION_LAYER
-import util.PARTICLE_LAYER
-import util.TEXTURE_SMOKE_PUFF
-import util.setDrawColor
+import shared.NO_COLLISION_LAYER
+import shared.PARTICLE_LAYER
+import shared.TEXTURE_SMOKE_PUFF
+import shared.setDrawColor
 
 class Smoke : SceneEntity(), CircleBody
 {

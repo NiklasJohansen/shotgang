@@ -13,7 +13,7 @@ import no.njoh.pulseengine.modules.lighting.ShadowType
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.bodies.PointBody
 import no.njoh.pulseengine.modules.physics.shapes.PointShape
-import util.*
+import shared.*
 import kotlin.math.*
 
 class Spark : SceneEntity(), PointBody, LightSource
