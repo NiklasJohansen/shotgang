@@ -1,5 +1,3 @@
-# Pulse Engine Game Template
+# SHOTGANG
 
-This repository provides a template for creating games with the [Pulse Engine](https://github.com/NiklasJohansen/PulseEngine).
-
-Some code examples are available and further instructions will be coming soon.
+A 2D top-down competitive couch coop game made while game-jamming at Låve-LAN 2022.
