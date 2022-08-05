@@ -13,6 +13,7 @@ import no.njoh.pulseengine.core.shared.annotations.Property
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.interpolateFrom
 import no.njoh.pulseengine.core.shared.utils.Extensions.toRadians
+import no.njoh.pulseengine.core.shared.utils.MathUtil.atan2
 import no.njoh.pulseengine.modules.lighting.LightSource
 import no.njoh.pulseengine.modules.lighting.LightType
 import no.njoh.pulseengine.modules.lighting.ShadowType
@@ -22,18 +23,18 @@ import no.njoh.pulseengine.modules.physics.bodies.CircleBody
 import no.njoh.pulseengine.modules.physics.bodies.PhysicsBody
 import no.njoh.pulseengine.modules.physics.shapes.CircleShape
 import systems.GameStateSystem
-import util.*
+import shared.*
 import kotlin.math.*
 import kotlin.random.Random
 
-class Player : SceneEntity(), CircleBody, LightSource
+class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
 {
     var name = "unknown"
     var gamepadId = 0
     var life = FULL_LIFE
 
     // Graphics props
-    @Property("Graphics", 0) var textureName = TEXTURE_WALK
+    @Property("Graphics", 0) var textureName = ""
     @Property("Graphics", 1) var textureScale = 1f
     @Property("Graphics", 2) var frameStartIndex = 0
     @Property("Graphics", 3) var frameEndIndex = 0
@@ -52,13 +53,14 @@ class Player : SceneEntity(), CircleBody, LightSource
     @Property("Physics", 7) var speed = 800f
 
     // Lighting props
-    @Property("Light", 1, 0f) override var intensity = 4f
-    @Property("Light", 2, 0f) override var radius: Float = 800f
-    @Property("Light", 3, 0f) override var size = 100f
-    @Property("Light", 4, 0f, 360f) override var coneAngle = 360f
-    @Property("Light", 5, 0f, 1f) override var spill: Float = 0.95f
-    @Property("Light", 6) override var type = LightType.RADIAL
-    @Property("Light", 7) override var shadowType = ShadowType.SOFT
+    @Property("Lighting", 1, 0f) override var intensity = 4f
+    @Property("Lighting", 2, 0f) override var radius: Float = 800f
+    @Property("Lighting", 3, 0f) override var size = 100f
+    @Property("Lighting", 4, 0f, 360f) override var coneAngle = 360f
+    @Property("Lighting", 5, 0f, 1f) override var spill: Float = 0.95f
+    @Property("Lighting", 6) override var type = LightType.RADIAL
+    @Property("Lighting", 7) override var shadowType = ShadowType.SOFT
+    @Property("Lighting", 6) override var normalMapName = ""
 
     // Shooting props
     @Property("Shooting", 0) var shootingEnabled = false
@@ -132,139 +134,6 @@ class Player : SceneEntity(), CircleBody, LightSource
         intensity = if (isDead()) 0f else lightIntensity
     }
 
-    private fun handleShooting(engine: PulseEngine, rightTrigger: Float)
-    {
-        if (shootingEnabled && rightTrigger > 0.5)
-        {
-            if (!shotFired || fullAuto)
-            {
-                shoot(engine)
-                shotFired = true
-            }
-        }
-        else shotFired = false
-    }
-
-    private fun handleFootsteps(engine: PulseEngine)
-    {
-        val millisBetweenSteps = 250 + Random.nextInt(3)
-        if (sqrt(xAcc * xAcc + yAcc * yAcc) > 1f && System.currentTimeMillis() - lastStepTime > millisBetweenSteps)
-        {
-            engine.playSoundWithName(
-                name = listOf(SOUND_STEP_0, SOUND_STEP_1, SOUND_STEP_2).random(),
-                pitch = 2f + 0.1f * nextRandomGaussian(),
-                volume = 0.3f + 0.1f * nextRandomGaussian()
-            )
-            lastStepTime = System.currentTimeMillis()
-        }
-    }
-
-    fun shoot(engine: PulseEngine)
-    {
-        if (isDead() || System.currentTimeMillis() - shootTime < 1000f / max(0.0001f, fireRate))
-            return // Dead or to close to last shot
-
-        // Apply recoil
-        val recoilAngle = -shape.rot + PIf
-        shape.xAcc += recoil * cos(recoilAngle)
-        shape.yAcc += recoil * sin(recoilAngle)
-
-        // Sound
-        engine.playSoundWithName(SOUND_SHOTGUN, pitch = 1f + 0.05f * nextRandomGaussian(),)
-        engine.playSoundWithName(
-            name = listOf(SOUND_SHELL_DROP_0, SOUND_SHELL_DROP_1, SOUND_SHELL_DROP_2).random(),
-            pitch = 2f + 0.2f * nextRandomGaussian(),
-            volume = 0.5f
-        )
-
-        // Spawn bullets
-        var xBullet = 0f
-        var yBullet = 0f
-        for (i in 0 until bulletCount)
-        {
-            // Calculate bullet spawn position
-            val bulletAngle = -shape.rot
-            val offsetSpawnAngle = bulletSpawnOffsetAngle.toRadians() + 0.02f * nextRandomGaussian()
-            xBullet = x + cos(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
-            yBullet = y + sin(bulletAngle + offsetSpawnAngle) * bulletSpawnOffsetLength
-
-            // Calculate cone and spread angles
-            val bulletConeAngle = bulletConeAngle.toRadians()
-            val spreadAngle = bulletSpreadAngle.toRadians() * nextRandomGaussian()
-            val stepAngle = bulletConeAngle / bulletCount
-            val coneAngle = 0.5f * (bulletConeAngle - stepAngle) - stepAngle * i
-
-            // Spawn bullet
-            val bullet = Bullet()
-            bullet.init(xBullet, yBullet, bulletAngle + coneAngle + spreadAngle, bulletVelocity)
-            bullet.shape.mass = bulletMass
-            bullet.spawnerId = this.id
-            engine.scene.addEntity(bullet)
-        }
-
-        // Muzzle flash
-        val flash = Flash()
-        flash.color = Color(1f, 0.85f, 0.3f)
-        flash.lifeTimeMillis = 100f
-        flash.coneAngle = 0f
-        flash.intensity = 8f
-        flash.radius = 400f + 300f * Random.nextFloat()
-        flash.rotation = rotation
-        flash.x = xBullet
-        flash.y = yBullet
-        flash.onStart(engine)
-        engine.scene.addEntity(flash)
-
-        // Sparks
-        for (i in 0 until 15)
-        {
-            val spark = Spark()
-            val velocity = 10f + Random.nextFloat() * 60
-            val angle = -rotation + 10 * nextRandomGaussian()
-            spark.turbulence = 5f
-            spark.timeToLiveMillis = 50 + Random.nextLong(300)
-            spark.init(xBullet, yBullet, angle.toRadians(), velocity)
-            spark.onStart(engine)
-            engine.scene.addEntity(spark)
-        }
-
-        // Smoke
-        for (i in 0 until 6)
-        {
-            val smoke = Smoke()
-            val velocity = 5f + 20f * Random.nextFloat()
-            smoke.x = xBullet
-            smoke.y = yBullet
-            smoke.rotation = Random.nextFloat() * 360f
-            smoke.startSize = 5f + 10f * Random.nextFloat()
-            smoke.endSize = 80f + 80f * Random.nextFloat()
-            smoke.lifeTimeMillis = 500 + (800 * Random.nextFloat()).toLong()
-            smoke.drag = 0.15f + 0.05f * Random.nextFloat()
-            smoke.init(engine)
-            smoke.shape.xLast = xBullet - velocity * cos(-rotation.toRadians())
-            smoke.shape.yLast = yBullet - velocity * sin(-rotation.toRadians())
-            smoke.shape.rotLast = smoke.shape.rot - 0.03f * Random.nextFloat()
-            engine.scene.addEntity(smoke)
-        }
-
-        // Eject empty shell
-        val shell = Shell()
-        shell.color = Color(0.7f, 0.7f, 0.7f)
-        shell.x = xBullet
-        shell.y = yBullet
-        shell.z = 1f
-        shell.width = 8f
-        shell.height = 16f
-        shell.rotation = rotation
-        shell.init(engine)
-        shell.shape.xLast = xBullet - 35f * cos(-rotation.toRadians() + PIf / 2f)
-        shell.shape.yLast = yBullet - 35f * sin(-rotation.toRadians() + PIf / 2f)
-        shell.shape.applyAngularAcceleration(nextRandomGaussian() * 0.5f)
-        engine.scene.addEntity(shell)
-
-        shootTime = System.currentTimeMillis()
-    }
-
     override fun onFixedUpdate(engine: PulseEngine)
     {
         // Physics
@@ -284,24 +153,10 @@ class Player : SceneEntity(), CircleBody, LightSource
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
-        val interpolate = (engine.scene.state == RUNNING)
-        val xPos = if (interpolate) x.interpolateFrom(shape.xLast) else x
-        val yPos = if (interpolate) y.interpolateFrom(shape.yLast) else y
+        // Player
         val spriteSheet = engine.asset.getOrNull<SpriteSheet>(textureName) ?: return
-        val frameTex = spriteSheet.getTexture(frame.toInt())
-
-        // entities.Player
         surface.setDrawColor(color, alpha = if (life <= 0) 0.6f else 1f)
-        surface.drawTexture(
-            texture = frameTex,
-            x = xPos,
-            y = yPos,
-            width = width * textureScale,
-            height = height * textureScale,
-            rot = rotation + 90,
-            xOrigin = 0.5f,
-            yOrigin = 0.5f
-        )
+        surface.drawPlayer(spriteSheet, width, height, interpolate = (engine.scene.state == RUNNING))
 
         // Life bar
         val a = life / 100f
@@ -312,10 +167,31 @@ class Player : SceneEntity(), CircleBody, LightSource
         surface.setDrawColor(1f - a, a, 0f)
         surface.drawTexture(Texture.BLANK, x - barWidth * 0.5f, yBar, barWidth * a, 4f)
 
-        // Name
+        // Name tag
         val font = engine.asset.getOrNull<Font>(FONT_BADABB)
         surface.setDrawColor(1f, 1f, 1f )
         surface.drawText(name, x, y - height * 0.85f, font, xOrigin = 0.5f, yOrigin = 0.5f, fontSize = 22f)
+    }
+
+    override fun renderCustomPass(engine: PulseEngine, surface: Surface2D)
+    {
+        val spriteSheet = engine.asset.getOrNull<SpriteSheet>(normalMapName) ?: return
+        surface.setDrawColor(1.0f, 1.0f, 1f)
+        surface.drawPlayer(spriteSheet, width, height, interpolate = (engine.scene.state == RUNNING))
+    }
+
+    private fun Surface2D.drawPlayer(spriteSheet: SpriteSheet, width: Float, height: Float, interpolate: Boolean)
+    {
+        drawTexture(
+            texture = spriteSheet.getTexture(frame.toInt()),
+            x = if (interpolate) x.interpolateFrom(shape.xLast) else x,
+            y = if (interpolate) y.interpolateFrom(shape.yLast) else y,
+            width = width * textureScale,
+            height = height * textureScale,
+            rot = rotation + 90,
+            xOrigin = 0.5f,
+            yOrigin = 0.5f
+        )
     }
 
     override fun onCollision(engine: PulseEngine, otherBody: PhysicsBody, result: ContactResult)
@@ -333,7 +209,7 @@ class Player : SceneEntity(), CircleBody, LightSource
                 if (takeDamage)
                 {
                     val dropOff = otherBody.getLifeTimeMillis() / otherBody.maxLifeTimeMillis
-                    val damage = 0.5f * otherBody.getVelocity() * otherBody.getMass() * dropOff
+                    val damage = 0.30f * otherBody.getVelocity() * otherBody.getMass() * dropOff
 
                     if (life > 0 && life - damage <= 0)
                         engine.scene.getEntityOfType<Player>(otherBody.spawnerId)?.let { it.kills++ }
@@ -342,6 +218,13 @@ class Player : SceneEntity(), CircleBody, LightSource
                     if (life <= 0f)
                         setDead(engine)
                 }
+
+                // Blood decal on walls
+                VfxFactory.spawnWallBloodEffect(engine, x + otherBody.shape.xVel, y + otherBody.shape.yVel)
+
+                // Blood decal on ground
+                if (Random.nextFloat() < 0.2)
+                    VfxFactory.spawnGroundBloodEffect(engine, x, y)
             }
 
             is SpikeWall ->
@@ -468,7 +351,7 @@ class Player : SceneEntity(), CircleBody, LightSource
         p.color = color
         p.life = life
 
-        // Animation
+        // Graphics
         p.textureName = textureName
         p.textureScale = textureScale
         p.frameStartIndex = frameStartIndex
@@ -484,6 +367,16 @@ class Player : SceneEntity(), CircleBody, LightSource
         p.friction = friction
         p.drag = drag
         p.speed = speed
+
+        // Lighting
+        p.intensity = intensity
+        p.radius = radius
+        p.size = size
+        p.coneAngle = coneAngle
+        p.spill = spill
+        p.type = type
+        p.shadowType = shadowType
+        p.normalMapName = normalMapName
 
         // Shooting
         p.shootingEnabled = shootingEnabled

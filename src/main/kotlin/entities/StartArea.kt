@@ -10,10 +10,7 @@ import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
 import no.njoh.pulseengine.core.shared.primitives.Color
 import systems.GameStateSystem
-import util.FONT_BADABB
-import util.SOUND_DING_0
-import util.SOUND_DING_1
-import util.playSoundWithName
+import shared.*
 import kotlin.math.max
 
 class StartArea : SceneEntity()
@@ -85,7 +82,7 @@ class StartArea : SceneEntity()
         val countDownTime = startCountDownTime
         if (engine.scene.state == SceneState.RUNNING && countDownTime != null)
         {
-            val overlaySurface = engine.gfx.getSurface("overlay") ?: return
+            val overlaySurface = engine.gfx.getSurface(OVERLAY_SURFACE) ?: return
             overlaySurface.setDrawColor(fontColor)
             overlaySurface.drawText(
                 text = getCountDownSecond(countDownTime).toString(),

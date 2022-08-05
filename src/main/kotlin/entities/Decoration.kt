@@ -5,9 +5,11 @@ import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
+import shared.NormalMapped
 
-class Decoration : SceneEntity()
+class Decoration : SceneEntity(), NormalMapped
 {
+    override var normalMapName = ""
     var textureName = ""
     var color = Color(1f, 1f, 1f)
     var xTiling = 1f

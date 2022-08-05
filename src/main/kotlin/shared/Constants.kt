@@ -1,4 +1,4 @@
-package util
+package shared
 
 // Collision layers
 const val WALL_LAYER = 1
@@ -10,11 +10,11 @@ const val NO_COLLISION_LAYER = 1024
 
 // Asset names
 const val FONT_BADABB = "badabb"
-const val TEXTURE_WALK = "top_down_walk"
 const val TEXTURE_SHOTGUN_SHELL = "shotgun_shell"
 const val TEXTURE_SMOKE_PUFF = "smoke_puff"
 const val TEXTURE_SPARK_0 = "spark_0"
-const val TEXTURE_BLOOD_0 = "blood_splatter_0"
+const val TEXTURE_BLOOD_0 = "blood_0"
+const val TEXTURE_BLOOD_1 = "blood_1"
 const val TEXTURE_BURN_0 = "burn_decal"
 const val SOUND_SHOTGUN = "shotgun"
 const val SOUND_DEATH = "death"
@@ -50,6 +50,7 @@ val LEVELS = listOf(
 )
 
 // Surface names
+const val OVERLAY_SURFACE = "overlay"
 const val BULLET_SURFACE = "bullet_surface"
 const val DECAL_MASK_SURFACE = "decal_mask_surface"
 const val DECAL_SURFACE = "decals"
