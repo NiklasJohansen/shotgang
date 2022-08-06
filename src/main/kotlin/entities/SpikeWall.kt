@@ -6,9 +6,11 @@ import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.shared.annotations.Property
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.lighting.LightOccluder
+import no.njoh.pulseengine.modules.lighting.NormalMapRenderer
+import no.njoh.pulseengine.modules.lighting.NormalMapRenderer.Orientation
+import no.njoh.pulseengine.modules.lighting.NormalMapped
 import no.njoh.pulseengine.modules.physics.entities.Box
 import shared.NO_COLLISION_LAYER
-import shared.NormalMapped
 import shared.WALL_LAYER
 import systems.EntityRenderSystem.DecalMask
 
@@ -24,6 +26,8 @@ class SpikeWall : Box(), LightOccluder, NormalMapped, DecalMask
     @Property("Physics", 2) override var collisionMask = NO_COLLISION_LAYER
     @Property("Lighting", 1) override var castShadows = true
     @Property("Lighting", 2) override var normalMapName = ""
+    @Property("Lighting", 3) override var normalMapIntensity = 1f
+    @Property("Lighting", 4) override var normalMapOrientation = Orientation.NORMAL
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
@@ -45,18 +49,17 @@ class SpikeWall : Box(), LightOccluder, NormalMapped, DecalMask
         if (normalMapName.isBlank())
             return
 
-        val normalMap = engine.asset.getOrNull<Texture>(normalMapName)
-        val dir = if (normalMap != null) 1.0f else 0.5f
-        surface.setDrawColor(dir, dir, 1f)
-        surface.drawTexture(
-            texture = normalMap ?: Texture.BLANK,
+        surface.getRenderer(NormalMapRenderer::class)?.drawNormalMap(
+            texture = engine.asset.getOrNull(normalMapName),
             x = x,
             y = y,
-            width = width * textureXScale,
-            height = height * textureYScale,
+            w = width * textureXScale,
+            h = height * textureYScale,
             rot = rotation,
             xOrigin = 0.5f,
-            yOrigin = 0.5f
+            yOrigin = 0.5f,
+            normalScale = normalMapIntensity,
+            orientation = normalMapOrientation
         )
     }
 }

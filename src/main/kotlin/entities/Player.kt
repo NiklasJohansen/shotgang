@@ -14,9 +14,8 @@ import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.interpolateFrom
 import no.njoh.pulseengine.core.shared.utils.Extensions.toRadians
 import no.njoh.pulseengine.core.shared.utils.MathUtil.atan2
-import no.njoh.pulseengine.modules.lighting.LightSource
-import no.njoh.pulseengine.modules.lighting.LightType
-import no.njoh.pulseengine.modules.lighting.ShadowType
+import no.njoh.pulseengine.modules.lighting.*
+import no.njoh.pulseengine.modules.lighting.NormalMapRenderer.Orientation
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.ContactResult
 import no.njoh.pulseengine.modules.physics.bodies.CircleBody
@@ -61,6 +60,8 @@ class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
     @Property("Lighting", 6) override var type = LightType.RADIAL
     @Property("Lighting", 7) override var shadowType = ShadowType.SOFT
     @Property("Lighting", 6) override var normalMapName = ""
+    @Property("Lighting", 8) override var normalMapIntensity = 1f
+    @Property("Lighting", 9) override var normalMapOrientation = Orientation.NORMAL
 
     // Shooting props
     @Property("Shooting", 0) var shootingEnabled = false
@@ -156,7 +157,16 @@ class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
         // Player
         val spriteSheet = engine.asset.getOrNull<SpriteSheet>(textureName) ?: return
         surface.setDrawColor(color, alpha = if (life <= 0) 0.6f else 1f)
-        surface.drawPlayer(spriteSheet, width, height, interpolate = (engine.scene.state == RUNNING))
+        surface.drawTexture(
+            texture = spriteSheet.getTexture(frame.toInt()),
+            x = if (engine.scene.state == RUNNING) x.interpolateFrom(shape.xLast) else x,
+            y = if (engine.scene.state == RUNNING) y.interpolateFrom(shape.yLast) else y,
+            width = width * textureScale,
+            height = height * textureScale,
+            rot = rotation + 90,
+            xOrigin = 0.5f,
+            yOrigin = 0.5f
+        )
 
         // Life bar
         val a = life / 100f
@@ -175,22 +185,20 @@ class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
 
     override fun renderCustomPass(engine: PulseEngine, surface: Surface2D)
     {
-        val spriteSheet = engine.asset.getOrNull<SpriteSheet>(normalMapName) ?: return
-        surface.setDrawColor(1.0f, 1.0f, 1f)
-        surface.drawPlayer(spriteSheet, width, height, interpolate = (engine.scene.state == RUNNING))
-    }
+        if (normalMapName.isBlank())
+            return
 
-    private fun Surface2D.drawPlayer(spriteSheet: SpriteSheet, width: Float, height: Float, interpolate: Boolean)
-    {
-        drawTexture(
-            texture = spriteSheet.getTexture(frame.toInt()),
-            x = if (interpolate) x.interpolateFrom(shape.xLast) else x,
-            y = if (interpolate) y.interpolateFrom(shape.yLast) else y,
-            width = width * textureScale,
-            height = height * textureScale,
+        surface.getRenderer(NormalMapRenderer::class)?.drawNormalMap(
+            texture = engine.asset.getOrNull<SpriteSheet>(normalMapName)?.getTexture(frame.toInt()),
+            x = if (engine.scene.state == RUNNING) x.interpolateFrom(shape.xLast) else x,
+            y = if (engine.scene.state == RUNNING) y.interpolateFrom(shape.yLast) else y,
+            w = width * textureScale,
+            h = height * textureScale,
             rot = rotation + 90,
             xOrigin = 0.5f,
-            yOrigin = 0.5f
+            yOrigin = 0.5f,
+            normalScale = normalMapIntensity,
+            orientation = normalMapOrientation
         )
     }
 
