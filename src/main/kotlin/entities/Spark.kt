@@ -45,7 +45,7 @@ class Spark : SceneEntity(), PointBody, LightSource
     override var coneAngle = 360f
     override var spill = 0.95f
     override var type = LightType.RADIAL
-    override var shadowType = ShadowType.NONE
+    override var shadowType = ShadowType.HARD
 
     @JsonIgnore private var spawnTimeMillis = System.currentTimeMillis()
     @JsonIgnore private var initialIntensity = intensity

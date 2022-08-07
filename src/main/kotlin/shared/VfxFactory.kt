@@ -161,9 +161,9 @@ object VfxFactory
         flash.coneAngle = 360f
         flash.intensity = 1f
         flash.radius = 300f
-        flash.size = 10f
-        flash.x = x - velocity * xDir
-        flash.y = y - velocity * yDir
+        flash.size = 100f
+        flash.x = x + velocity * xDir
+        flash.y = y + velocity * yDir
         flash.onStart(engine)
         engine.scene.addEntity(flash)
 
