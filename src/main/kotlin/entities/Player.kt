@@ -385,6 +385,8 @@ class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
         p.type = type
         p.shadowType = shadowType
         p.normalMapName = normalMapName
+        p.normalMapIntensity = normalMapIntensity
+        p.normalMapOrientation = normalMapOrientation
 
         // Shooting
         p.shootingEnabled = shootingEnabled

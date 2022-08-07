@@ -51,6 +51,7 @@ val LEVELS = listOf(
 
 // Surface names
 const val OVERLAY_SURFACE = "overlay"
+const val AO_SURFACE = "ao_surface"
 const val BULLET_SURFACE = "bullet_surface"
 const val DECAL_MASK_SURFACE = "decal_mask_surface"
 const val DECAL_SURFACE = "decals"

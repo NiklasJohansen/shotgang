@@ -12,9 +12,10 @@ import no.njoh.pulseengine.modules.lighting.NormalMapped
 import no.njoh.pulseengine.modules.physics.entities.Box
 import shared.NO_COLLISION_LAYER
 import shared.WALL_LAYER
+import systems.EntityRenderSystem.AOMask
 import systems.EntityRenderSystem.DecalMask
 
-class SpikeWall : Box(), LightOccluder, NormalMapped, DecalMask
+class SpikeWall : Box(), LightOccluder, NormalMapped, DecalMask, AOMask
 {
     var color = Color(0.3f, 0.3f, 0.3f)
     var textureName: String = ""
