@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.toDegrees
 import no.njoh.pulseengine.modules.lighting.LightSource
@@ -16,9 +17,10 @@ import no.njoh.pulseengine.modules.physics.shapes.PointShape
 import shared.*
 import kotlin.math.*
 
-class Spark : SceneEntity(), PointBody, LightSource
+class Spark : StandardSceneEntity(), PointBody, LightSource
 {
     // Appearance
+    @AssetRef(Texture::class)
     var textureName = TEXTURE_SPARK_0
     var startColor = Color(1f, 0.85f, 0.5f)
     var endColor = Color(1f, 0.5f, 0.0f)
@@ -27,7 +29,8 @@ class Spark : SceneEntity(), PointBody, LightSource
     var timeToLiveMillis = 1000L
 
     // Physics
-    @JsonIgnore override val shape = PointShape()
+    @JsonIgnore
+    override val shape = PointShape()
     override var bodyType = BodyType.DYNAMIC
     override var layerMask = PARTICLE_LAYER
     override var collisionMask = WALL_LAYER
@@ -47,10 +50,10 @@ class Spark : SceneEntity(), PointBody, LightSource
     override var type = LightType.RADIAL
     override var shadowType = ShadowType.HARD
 
-    @JsonIgnore private var spawnTimeMillis = System.currentTimeMillis()
-    @JsonIgnore private var initialIntensity = intensity
-    @JsonIgnore private var xLast = 0f
-    @JsonIgnore private var yLast = 0f
+    private var spawnTimeMillis = System.currentTimeMillis()
+    private var initialIntensity = intensity
+    private var xLast = 0f
+    private var yLast = 0f
 
     init { setNot(DISCOVERABLE) }
 

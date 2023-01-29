@@ -1,5 +1,4 @@
 package entities
-import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.modules.lighting.entities.Lamp
 
@@ -7,8 +6,8 @@ class Flash : Lamp()
 {
     var lifeTimeMillis = 200f
 
-    @JsonIgnore private var spawnTime = System.currentTimeMillis()
-    @JsonIgnore private var startIntensity = 0f
+    private var spawnTime = System.currentTimeMillis()
+    private var startIntensity = 0f
 
     override fun onStart(engine: PulseEngine)
     {

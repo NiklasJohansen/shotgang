@@ -13,7 +13,7 @@ class FireSystem : SceneSystem()
 {
     var millisBetweenShots = 5000
 
-    @JsonIgnore private var lastShotTime = 0L
+    private var lastShotTime = 0L
 
     override fun onUpdate(engine: PulseEngine)
     {

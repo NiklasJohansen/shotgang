@@ -7,9 +7,10 @@ import no.njoh.pulseengine.core.asset.types.SpriteSheet
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.Axis
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.scene.SceneState.RUNNING
-import no.njoh.pulseengine.core.shared.annotations.Property
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
+import no.njoh.pulseengine.core.shared.annotations.ScnProp
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.interpolateFrom
 import no.njoh.pulseengine.core.shared.utils.Extensions.toRadians
@@ -26,65 +27,68 @@ import shared.*
 import kotlin.math.*
 import kotlin.random.Random
 
-class Player : SceneEntity(), CircleBody, LightSource, NormalMapped
+class Player : StandardSceneEntity(), CircleBody, LightSource, NormalMapped
 {
-    var name = "unknown"
+    override var name = "unknown"
     var gamepadId = 0
     var life = FULL_LIFE
 
     // Graphics props
-    @Property("Graphics", 0) var textureName = ""
-    @Property("Graphics", 1) var textureScale = 1f
-    @Property("Graphics", 2) var frameStartIndex = 0
-    @Property("Graphics", 3) var frameEndIndex = 0
-    @Property("Graphics", 4) var frameRate = 2
-    @Property("Graphics", 5) override var color = Color(1f, 1f, 1f)
+    @AssetRef(Texture::class)
+    @ScnProp("Graphics", 0) var textureName = ""
+    @ScnProp("Graphics", 1) var textureScale = 1f
+    @ScnProp("Graphics", 2) var frameStartIndex = 0
+    @ScnProp("Graphics", 3) var frameEndIndex = 0
+    @ScnProp("Graphics", 4) var frameRate = 2
+    @ScnProp("Graphics", 5) override var color = Color(1f, 1f, 1f)
 
     // Physics props
-    @JsonIgnore override val shape = CircleShape()
-    @Property("Physics", 0) override var bodyType = BodyType.DYNAMIC
-    @Property("Physics", 1) override var layerMask = PLAYER_LAYER
-    @Property("Physics", 2) override var collisionMask = PLAYER_LAYER or WALL_LAYER
-    @Property("Physics", 3) override var restitution = 0f
-    @Property("Physics", 4) override var density = 1f
-    @Property("Physics", 5) override var friction = 0.4f
-    @Property("Physics", 6) override var drag = 0.1f
-    @Property("Physics", 7) var speed = 800f
+    @JsonIgnore
+    override val shape = CircleShape()
+    override var bodyType = BodyType.DYNAMIC
+    override var layerMask = PLAYER_LAYER
+    override var collisionMask = PLAYER_LAYER or WALL_LAYER
+    override var restitution = 0f
+    override var density = 1f
+    override var friction = 0.4f
+    override var drag = 0.1f
+    @ScnProp("Physics", 7)
+    var speed = 800f
 
     // Lighting props
-    @Property("Lighting", 1, 0f) override var intensity = 4f
-    @Property("Lighting", 2, 0f) override var radius: Float = 800f
-    @Property("Lighting", 3, 0f) override var size = 100f
-    @Property("Lighting", 4, 0f, 360f) override var coneAngle = 360f
-    @Property("Lighting", 5, 0f, 1f) override var spill: Float = 0.95f
-    @Property("Lighting", 6) override var type = LightType.RADIAL
-    @Property("Lighting", 7) override var shadowType = ShadowType.SOFT
-    @Property("Lighting", 6) override var normalMapName = ""
-    @Property("Lighting", 8) override var normalMapIntensity = 1f
-    @Property("Lighting", 9) override var normalMapOrientation = Orientation.NORMAL
+    override var intensity = 4f
+    override var radius: Float = 800f
+    override var size = 100f
+    override var coneAngle = 360f
+    override var spill: Float = 0.95f
+    override var type = LightType.RADIAL
+    override var shadowType = ShadowType.SOFT
+    @ScnProp("Lighting", 6) override var normalMapName = ""
+    @ScnProp("Lighting", 8) override var normalMapIntensity = 1f
+    @ScnProp("Lighting", 9) override var normalMapOrientation = Orientation.NORMAL
 
     // Shooting props
-    @Property("Shooting", 0) var shootingEnabled = false
-    @Property("Shooting", 1) var fireRate = 10f
-    @Property("Shooting", 2) var recoil = 1000f
-    @Property("Shooting", 3) var fullAuto = false
-    @Property("Shooting", 4) var bulletVelocity = 100f
-    @Property("Shooting", 5) var bulletMass = 10f
-    @Property("Shooting", 6) var bulletConeAngle = 45f
-    @Property("Shooting", 7) var bulletSpreadAngle = 2f
-    @Property("Shooting", 8) var bulletCount = 10
-    @Property("Shooting", 9) var bulletSpawnOffsetAngle = 30f
-    @Property("Shooting", 10) var bulletSpawnOffsetLength = 40f
+    @ScnProp("Shooting", 0) var shootingEnabled = false
+    @ScnProp("Shooting", 1) var fireRate = 10f
+    @ScnProp("Shooting", 2) var recoil = 1000f
+    @ScnProp("Shooting", 3) var fullAuto = false
+    @ScnProp("Shooting", 4) var bulletVelocity = 100f
+    @ScnProp("Shooting", 5) var bulletMass = 10f
+    @ScnProp("Shooting", 6) var bulletConeAngle = 45f
+    @ScnProp("Shooting", 7) var bulletSpreadAngle = 2f
+    @ScnProp("Shooting", 8) var bulletCount = 10
+    @ScnProp("Shooting", 9) var bulletSpawnOffsetAngle = 30f
+    @ScnProp("Shooting", 10) var bulletSpawnOffsetLength = 40f
 
     // Players state
-    @JsonIgnore private var accRot = 0f
-    @JsonIgnore private var xAcc = 0f
-    @JsonIgnore private var yAcc = 0f
-    @JsonIgnore private var frame = 0f
-    @JsonIgnore private var shootTime = 0L
-    @JsonIgnore private var shotFired = false
-    @JsonIgnore private var lightIntensity = intensity
-    @JsonIgnore private var lastStepTime = 0L
+    private var accRot = 0f
+    private var xAcc = 0f
+    private var yAcc = 0f
+    private var frame = 0f
+    private var shootTime = 0L
+    private var shotFired = false
+    private var lightIntensity = intensity
+    private var lastStepTime = 0L
 
     // Scoring
     @JsonIgnore var kills = 0

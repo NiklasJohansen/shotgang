@@ -3,7 +3,8 @@ package entities
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.shared.annotations.Property
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
+import no.njoh.pulseengine.core.shared.annotations.ScnProp
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.lighting.LightOccluder
 import no.njoh.pulseengine.modules.lighting.NormalMapRenderer
@@ -17,18 +18,19 @@ import systems.EntityRenderSystem.DecalMask
 
 class SpikeWall : Box(), LightOccluder, NormalMapped, DecalMask, AOMask
 {
-    var color = Color(0.3f, 0.3f, 0.3f)
+    @AssetRef(Texture::class)
     var textureName: String = ""
     var textureXScale = 1f
     var textureYScale = 1f
+    var color = Color(0.3f, 0.3f, 0.3f)
     var hasSpikes = true
 
-    @Property("Physics", 1) override var layerMask = WALL_LAYER
-    @Property("Physics", 2) override var collisionMask = NO_COLLISION_LAYER
-    @Property("Lighting", 1) override var castShadows = true
-    @Property("Lighting", 2) override var normalMapName = ""
-    @Property("Lighting", 3) override var normalMapIntensity = 1f
-    @Property("Lighting", 4) override var normalMapOrientation = Orientation.NORMAL
+    @ScnProp("Physics", 1) override var layerMask = WALL_LAYER
+    @ScnProp("Physics", 2) override var collisionMask = NO_COLLISION_LAYER
+    @ScnProp("Lighting", 1) override var castShadows = true
+    @ScnProp("Lighting", 2) override var normalMapName = ""
+    @ScnProp("Lighting", 3) override var normalMapIntensity = 1f
+    @ScnProp("Lighting", 4) override var normalMapOrientation = Orientation.NORMAL
 
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {

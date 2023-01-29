@@ -1,30 +1,34 @@
 package entities
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import systems.PlayerSpawnSystem
 import no.njoh.pulseengine.core.PulseEngine
+import no.njoh.pulseengine.core.asset.types.Font
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
 import no.njoh.pulseengine.core.input.Key
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
 import no.njoh.pulseengine.core.shared.primitives.Color
 import systems.GameStateSystem
 import shared.*
 import kotlin.math.max
 
-class StartArea : SceneEntity()
+class StartArea : StandardSceneEntity()
 {
-    var color = Color(0f, 1f, 0f, 0.8f)
+    @AssetRef(Texture::class)
     var textureName = ""
-    var readyCountdownTime = 3000L
+    var color = Color(0f, 1f, 0f, 0.8f)
+
+    @AssetRef(Font::class)
     var fontName =  FONT_BADABB
     var fontSize = 200f
     var fontColor = Color(1f, 0.67f, 0f)
+    var readyCountdownTime = 3000L
 
-    @JsonIgnore private var startCountDownTime: Long? = 0L
-    @JsonIgnore private var lastCountDownSecond = -1
-    @JsonIgnore private var transitionedToNextLevel = false
+    private var startCountDownTime: Long? = 0L
+    private var lastCountDownSecond = -1
+    private var transitionedToNextLevel = false
 
     override fun onUpdate(engine: PulseEngine)
     {
