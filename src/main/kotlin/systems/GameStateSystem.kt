@@ -27,10 +27,10 @@ class GameStateSystem : SceneSystem()
     @JsonIgnore var gameStarted = false
     @JsonIgnore var gameOver = false
     @JsonIgnore var scoreUpdated = false
-    @JsonIgnore private var gameOverTime = 0L
-    @JsonIgnore private var gameStartedTime = 0L
-    @JsonIgnore private var transitionedToNextLevel = false
-    @JsonIgnore private var lastCountDownSecond: Long = -1L
+    private var gameOverTime = 0L
+    private var gameStartedTime = 0L
+    private var transitionedToNextLevel = false
+    private var lastCountDownSecond: Long = -1L
 
     override fun onStart(engine: PulseEngine)
     {

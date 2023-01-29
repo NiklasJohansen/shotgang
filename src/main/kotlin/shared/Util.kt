@@ -48,7 +48,7 @@ inline fun <reified T: Asset> AssetManager.loadAll(directory: String)
         val assetName = fileName.substringAfterLast("/").substringBeforeLast(".")
         when (T::class)
         {
-            Font::class -> if (fileName.endsWith("ttf")) loadFont(fileName, assetName, arrayOf(80f).toFloatArray())
+            Font::class -> if (fileName.endsWith("ttf")) loadFont(fileName, assetName, fontSize = 80f)
             Sound::class -> if (fileName.endsWith("ogg")) loadSound(fileName, assetName)
             Texture::class -> if (!fileName.endsWith("png")) continue else
             {

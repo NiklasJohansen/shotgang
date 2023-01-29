@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
-import no.njoh.pulseengine.core.shared.annotations.Property
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.core.shared.utils.Extensions.interpolateFrom
 import no.njoh.pulseengine.modules.physics.BodyType
@@ -14,19 +14,21 @@ import no.njoh.pulseengine.modules.physics.bodies.CircleBody
 import no.njoh.pulseengine.modules.physics.shapes.CircleShape
 import shared.*
 
-class Shell : SceneEntity(), CircleBody
+class Shell : StandardSceneEntity(), CircleBody
 {
-    var color = Color(1f, 1f, 1f)
+    @AssetRef(Texture::class)
     var textureName = TEXTURE_SHOTGUN_SHELL
+    var color = Color(1f, 1f, 1f)
 
-    @JsonIgnore override val shape = CircleShape()
-    @Property("Physics", 0) override var bodyType = BodyType.DYNAMIC
-    @Property("Physics", 1) override var layerMask = SHELL_LAYER
-    @Property("Physics", 2) override var collisionMask = WALL_LAYER
-    @Property("Physics", 3) override var restitution = 0f
-    @Property("Physics", 4) override var density = 0f
-    @Property("Physics", 5) override var friction = 0.2f
-    @Property("Physics", 6) override var drag = 0.2f
+    @JsonIgnore
+    override val shape = CircleShape()
+    override var bodyType = BodyType.DYNAMIC
+    override var layerMask = SHELL_LAYER
+    override var collisionMask = WALL_LAYER
+    override var restitution = 0f
+    override var density = 0f
+    override var friction = 0.2f
+    override var drag = 0.2f
 
     init { setNot(DISCOVERABLE) }
 

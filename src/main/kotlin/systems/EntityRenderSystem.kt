@@ -1,6 +1,5 @@
 package systems
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import entities.Bullet
 import entities.Decal
 import no.njoh.pulseengine.core.PulseEngine
@@ -14,7 +13,7 @@ import no.njoh.pulseengine.core.graphics.postprocessing.SinglePassEffect
 import no.njoh.pulseengine.core.graphics.postprocessing.effects.BlurEffect
 import no.njoh.pulseengine.core.scene.SceneEntity
 import no.njoh.pulseengine.core.scene.systems.EntityRendererImpl
-import no.njoh.pulseengine.core.shared.annotations.Property
+import no.njoh.pulseengine.core.shared.annotations.ScnProp
 import no.njoh.pulseengine.core.shared.primitives.Color
 import shared.BULLET_SURFACE
 import shared.DECAL_SURFACE
@@ -23,11 +22,11 @@ import shared.AO_SURFACE
 
 class EntityRenderSystem : EntityRendererImpl()
 {
-    @Property(min = 0f, max = 1f) var sizeAO = 0.24f
-    @Property(min = 0f, max = 1f) var opacityAO = 0.44f
+    @ScnProp(min = 0f, max = 1f) var sizeAO = 0.24f
+    @ScnProp(min = 0f, max = 1f) var opacityAO = 0.44f
 
-    @JsonIgnore private lateinit var overlayEffect: OverlayEffect
-    @JsonIgnore private lateinit var aoEffect: AmbientOcclusionEffect
+    private lateinit var overlayEffect: OverlayEffect
+    private lateinit var aoEffect: AmbientOcclusionEffect
 
     override fun onCreate(engine: PulseEngine)
     {

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
-import no.njoh.pulseengine.core.shared.annotations.Property
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.bodies.CircleBody
@@ -15,24 +15,27 @@ import shared.PARTICLE_LAYER
 import shared.TEXTURE_SMOKE_PUFF
 import shared.setDrawColor
 
-class Smoke : SceneEntity(), CircleBody
+class Smoke : StandardSceneEntity(), CircleBody
 {
-    var color = Color(1f, 1f, 1f)
+    @AssetRef(Texture::class)
     var textureName = TEXTURE_SMOKE_PUFF
+    var color = Color(1f, 1f, 1f)
     var lifeTimeMillis = 200L
     var startSize = 10f
     var endSize = 300f
 
-    @Property("Physics", 0) override var bodyType = BodyType.DYNAMIC
-    @Property("Physics", 1) override var layerMask = PARTICLE_LAYER
-    @Property("Physics", 2) override var collisionMask = NO_COLLISION_LAYER
-    @Property("Physics", 3) override var restitution = 0f
-    @Property("Physics", 4) override var density = 1f
-    @Property("Physics", 5) override var friction = 0.2f
-    @Property("Physics", 6) override var drag = 0.4f
+    @JsonIgnore
+    override val shape = CircleShape()
+    override var bodyType = BodyType.DYNAMIC
+    override var layerMask = PARTICLE_LAYER
+    override var collisionMask = NO_COLLISION_LAYER
+    override var restitution = 0f
+    override var density = 1f
+    override var friction = 0.2f
+    override var drag = 0.4f
 
-    @JsonIgnore override val shape = CircleShape()
-    @JsonIgnore var spawnTime = System.currentTimeMillis()
+    @JsonIgnore
+    var spawnTime = System.currentTimeMillis()
 
     init { setNot(DISCOVERABLE) }
 

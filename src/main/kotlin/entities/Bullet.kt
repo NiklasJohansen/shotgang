@@ -3,20 +3,19 @@ package entities
 import com.fasterxml.jackson.annotation.JsonIgnore
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
-import no.njoh.pulseengine.core.shared.annotations.Property
 import no.njoh.pulseengine.core.shared.primitives.Color
 import no.njoh.pulseengine.modules.physics.BodyType
 import no.njoh.pulseengine.modules.physics.ContactResult
 import no.njoh.pulseengine.modules.physics.bodies.PhysicsBody
 import no.njoh.pulseengine.modules.physics.bodies.PointBody
 import no.njoh.pulseengine.modules.physics.shapes.PointShape
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import shared.*
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Bullet : SceneEntity(), PointBody
+class Bullet : StandardSceneEntity(), PointBody
 {
     // Properties
     var color = Color(1f, 0.85f, 0.4f)
@@ -24,18 +23,19 @@ class Bullet : SceneEntity(), PointBody
     var spawnerId = -1L
 
     // Physics
-    @JsonIgnore override val shape = PointShape()
-    @Property("Physics", 0) override var bodyType = BodyType.DYNAMIC
-    @Property("Physics", 1) override var layerMask = BULLET_LAYER
-    @Property("Physics", 2) override var collisionMask = WALL_LAYER or PLAYER_LAYER
-    @Property("Physics", 3) override var restitution = 0f
-    @Property("Physics", 4) override var density = 1f
-    @Property("Physics", 5) override var friction = 0f
-    @Property("Physics", 6) override var drag = 0.1f
+    @JsonIgnore
+    override val shape = PointShape()
+    override var bodyType = BodyType.DYNAMIC
+    override var layerMask = BULLET_LAYER
+    override var collisionMask = WALL_LAYER or PLAYER_LAYER
+    override var restitution = 0f
+    override var density = 1f
+    override var friction = 0f
+    override var drag = 0.1f
 
-    @JsonIgnore private var spawnTimeMillis = System.currentTimeMillis()
-    @JsonIgnore private var xLast = 0f
-    @JsonIgnore private var yLast = 0f
+    private var spawnTimeMillis = System.currentTimeMillis()
+    private var xLast = 0f
+    private var yLast = 0f
 
     fun init(xInit: Float, yInit: Float, angleRad: Float, velocity: Float)
     {

@@ -3,11 +3,13 @@ package entities
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.core.shared.annotations.AssetRef
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.shared.primitives.Color
 
-class Decal : SceneEntity()
+class Decal : StandardSceneEntity()
 {
+    @AssetRef(Texture::class)
     var textureName = ""
     var color = Color(1f, 1f, 1f)
 

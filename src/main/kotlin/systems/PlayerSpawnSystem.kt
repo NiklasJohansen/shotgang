@@ -17,7 +17,8 @@ class PlayerSpawnSystem : SceneSystem()
 {
     var templatePlayerId = -1L
 
-    @JsonIgnore var activePlayers = mutableListOf<Long>()
+    @JsonIgnore
+    var activePlayers = mutableListOf<Long>()
 
     override fun onCreate(engine: PulseEngine)
     {

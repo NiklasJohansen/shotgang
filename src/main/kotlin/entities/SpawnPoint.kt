@@ -3,10 +3,10 @@ package entities
 import no.njoh.pulseengine.core.PulseEngine
 import no.njoh.pulseengine.core.asset.types.Texture
 import no.njoh.pulseengine.core.graphics.Surface2D
-import no.njoh.pulseengine.core.scene.SceneEntity
+import no.njoh.pulseengine.modules.scene.entities.StandardSceneEntity
 import no.njoh.pulseengine.core.scene.SceneState
 
-class SpawnPoint : SceneEntity()
+class SpawnPoint : StandardSceneEntity()
 {
     override fun onRender(engine: PulseEngine, surface: Surface2D)
     {
